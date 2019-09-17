@@ -93,8 +93,8 @@
 						<li><a href="{{route('trang-chu')}}">Trang chủ</a></li>
 						<li><a href="">Loại sản phẩm</a>
 							<ul class="sub-menu">
-								@foreach($loai_sp as $loai)
-								<li><a href="{{route('producttype', $loai->id)}}">{{$loai->name}}</a></li>
+								@foreach($product_type as $type)
+								<li><a href="{{route('producttype', $type->id)}}">{{$type->name}}</a></li>
 								@endforeach
 							</ul>
 						</li>
