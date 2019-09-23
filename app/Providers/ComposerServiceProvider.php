@@ -25,7 +25,9 @@ class ComposerServiceProvider extends ServiceProvider
     public function boot()
     {
         view::composer(
-            ['layouts.footer', 'layouts.header'], 
+            ['layouts.footer', 
+             'layouts.header', 
+             'admin.products.create'], 
             'App\Http\ViewComposers\FooterComposer'
         );
         

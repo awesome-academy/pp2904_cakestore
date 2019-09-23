@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\Product;
 use App\Http\Requests\ProductFormRequest;
+use App\Contracts\Interfaces\ProductInterface;
 
 class ProductController extends Controller
 {
@@ -14,11 +14,18 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    private $productRepository;
+
+    public function __construct(ProductInterface $productRepository)
+    {
+        $this->productRepository = $productRepository;
+    }
+
     public function index()
     {
-        $products = Product::paginate(3);
+        $products = $this->productRepository->getAll();
         
-        return view('backend.products.index', compact('products'));
+        return view('admin.products.index', compact('products'));
     }
 
     /**
@@ -28,7 +35,7 @@ class ProductController extends Controller
      */
     public function create()
     {
-        return view('backend.products.create');
+        return view('admin.products.create');
     }
 
     /**
@@ -38,19 +45,10 @@ class ProductController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(ProductFormRequest $request)
-    {
-        $product = Product::create([
-            'name' => $request->get('name'),
-            'id_type' => $request->get('id_type'),
-            'description' => $request->get('description'),
-            'unit_price' => $request->get('unit_price'),
-            'promotion_price' => $request->get('promotion_price'),
-            'image' => $request->get('image'),
-            'unit' => $request->get('unit'),
-            'new' => $request->get('new')
-        ]);
+    {   
+        $this->productRepository->createNew($request);
 
-        return redirect('/admin/products/create')->with('status', 'A new product has been created!');
+        return redirect(route('products.create'))->with('status', 'A new product has been created!');
     }
 
     /**
@@ -61,9 +59,7 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        $product = Product::find($id);
-
-        return view('backend.products.show', compact('product'));
+        
     }
 
     /**
@@ -74,9 +70,9 @@ class ProductController extends Controller
      */
     public function edit($id)
     {
-        $product = Product::find($id);
+        $product = $this->productRepository->findById($id);
 
-        return view('backend.products.edit', compact('product'));
+        return view('admin.products.edit', compact('product'));
     }
 
     /**
@@ -86,20 +82,9 @@ class ProductController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(ProductFormRequest $request, $id)
+    public function update($id)
     {
-        $product = Product::find($id);
-
-        $product->name = $request->get('name');
-        $product->id_type = $request->get('id_type');
-        $product->description = $request->get('description');
-        $product->unit_price = $request->get('unit_price');
-        $product->promotion_price = $request->get('promotion_price');
-        $product->image = $request->get('image');
-        $product->unit = $request->get('unit');
-        $product->new = $request->get('new');
-
-        $product->save();
+        $product = $this->productRepository->updateExist($id);
 
         return redirect(action('Admin\ProductController@edit', $product->id))->with('status', 'The product has been updated');
     }
@@ -112,16 +97,8 @@ class ProductController extends Controller
      */
     public function destroy($id)
     {
-        $product = Product::find($id);
+        $product = $this->productRepository->deleteById($id);
 
-        $product->delete();
-
-        return redirect('admin/products')->with('status', 'The product '.$product->name.' has been deleted!');
-    }
-
-    public function getSearch(Request $request){
-        $products = Product::where('name', 'like', '%'.$request->key.'%')->orWhere('unit_price', $request->key)->paginate(5);
-
-        return view('backend.products.index', compact('products'));
+        return redirect("route('products.index')")->with('status', 'The product '.$product->name.' has been deleted!');
     }
 }
